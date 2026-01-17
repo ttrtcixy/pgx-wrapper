@@ -18,7 +18,6 @@ type Config struct {
 
 type Postgres struct {
 	log  *slog.Logger
-	cfg  Config
 	pool *pgxpool.Pool
 }
 
@@ -30,14 +29,13 @@ func (r *rows) CommandTag() CommandTag {
 	return r.Rows.CommandTag()
 }
 
-func New(ctx context.Context, log *slog.Logger, cfg Config) (*Postgres, error) {
+func New(ctx context.Context, log *slog.Logger, cfg *Config) (*Postgres, error) {
 	const op = "storage.New()"
 	var pg = &Postgres{
 		log: log.WithGroup("postgres_storage"),
-		cfg: cfg,
 	}
 
-	if err := pg.createPool(ctx); err != nil {
+	if err := pg.createPool(ctx, cfg); err != nil {
 		return nil, fmt.Errorf("%s - error pool creation -> %w", op, err)
 	}
 
@@ -49,15 +47,15 @@ func New(ctx context.Context, log *slog.Logger, cfg Config) (*Postgres, error) {
 }
 
 // createPool init database connection, but not connect
-func (db *Postgres) createPool(ctx context.Context) (err error) {
+func (db *Postgres) createPool(ctx context.Context, cfg *Config) (err error) {
 	const op = "storage.createPool()"
-	poolCfg, err := pgxpool.ParseConfig(db.cfg.Dsn)
+	poolCfg, err := pgxpool.ParseConfig(cfg.Dsn)
 	if err != nil {
 		return fmt.Errorf("%s - parse config error -> %w", op, err)
 	}
 
-	poolCfg.ConnConfig.ConnectTimeout = db.cfg.ConnectTimeout
-	poolCfg.MaxConnIdleTime = db.cfg.MaxConnIdleTime
+	poolCfg.ConnConfig.ConnectTimeout = cfg.ConnectTimeout
+	poolCfg.MaxConnIdleTime = cfg.MaxConnIdleTime
 
 	db.pool, err = pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
