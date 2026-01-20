@@ -85,7 +85,7 @@ var txKey = txCtxKey{}
 // todo как выглядит лог если tx.Rollback, на каких слоях он появится
 
 // RunInTx before starting a transaction, it checks whether the user has canceled the request, and then initiates the transaction.
-func (db *Postgres) RunInTx(ctx context.Context, fn func(context.Context) error) (err error) {
+func (db *Postgres) RunInTx(ctx context.Context, txOptions pgx.TxOptions, fn func(context.Context) error) (err error) {
 	const op = "storage.RunInTx()"
 	// if user close connection
 	if err := ctx.Err(); err != nil {
@@ -100,7 +100,7 @@ func (db *Postgres) RunInTx(ctx context.Context, fn func(context.Context) error)
 	}
 
 	// start tx
-	tx, err := db.pool.Begin(ctx)
+	tx, err := db.pool.BeginTx(ctx, txOptions)
 	if err != nil {
 		return err
 	}
