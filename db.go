@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -10,8 +9,6 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
-
-var ErrNoRows = errors.New("no rows in result set")
 
 type Config struct {
 	Dsn             string        `env:"DB_URL,required,notEmpty"`
@@ -165,9 +162,6 @@ func (db *Postgres) Query(ctx context.Context, query Query) (Rows, error) {
 
 	rw, err := db.pool.Query(ctx, query.Query(), query.Args()...)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, ErrNoRows
-		}
 		return nil, err
 	}
 
