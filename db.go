@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -19,14 +20,6 @@ type Config struct {
 type Postgres struct {
 	log  *slog.Logger
 	pool *pgxpool.Pool
-}
-
-type rows struct {
-	pgx.Rows
-}
-
-func (r *rows) CommandTag() CommandTag {
-	return r.Rows.CommandTag()
 }
 
 func New(ctx context.Context, log *slog.Logger, cfg *Config) (*Postgres, error) {
@@ -66,7 +59,7 @@ func (db *Postgres) createPool(ctx context.Context, cfg *Config) (err error) {
 }
 
 func (db *Postgres) ping(ctx context.Context) error {
-	const op = "storage.ping()"
+	const op = "storage.ping"
 	if err := db.pool.Ping(ctx); err != nil {
 		return fmt.Errorf("%s - error connect to database -> %s", op, err.Error())
 	}
@@ -140,37 +133,28 @@ func value(ctx context.Context) (pgx.Tx, bool) {
 	return tx, ok
 }
 
-func (db *Postgres) Exec(ctx context.Context, query Query) (CommandTag, error) {
+func (db *Postgres) Exec(ctx context.Context, query Query) (pgconn.CommandTag, error) {
 	db.logQuery(ctx, query)
 
-	if val, ok := value(ctx); ok {
-		return val.Exec(ctx, query.Query(), query.Args()...)
+	if tx, ok := value(ctx); ok {
+		return tx.Exec(ctx, query.Query(), query.Args()...)
 	}
 
 	return db.pool.Exec(ctx, query.Query(), query.Args()...)
 }
 
-func (db *Postgres) Query(ctx context.Context, query Query) (Rows, error) {
+func (db *Postgres) Query(ctx context.Context, query Query) (pgx.Rows, error) {
 	db.logQuery(ctx, query)
-	if val, ok := value(ctx); ok {
-		rw, err := val.Query(ctx, query.Query(), query.Args()...)
-		if err != nil {
-			return nil, err
-		}
-		return &rows{rw}, nil
+	if tx, ok := value(ctx); ok {
+		return tx.Query(ctx, query.Query(), query.Args()...)
 	}
 
-	rw, err := db.pool.Query(ctx, query.Query(), query.Args()...)
-	if err != nil {
-		return nil, err
-	}
-
-	return &rows{rw}, nil
+	return db.pool.Query(ctx, query.Query(), query.Args()...)
 }
-func (db *Postgres) QueryRow(ctx context.Context, query Query) Row {
+func (db *Postgres) QueryRow(ctx context.Context, query Query) pgx.Row {
 	db.logQuery(ctx, query)
-	if val, ok := value(ctx); ok {
-		return val.QueryRow(ctx, query.Query(), query.Args()...)
+	if tx, ok := value(ctx); ok {
+		return tx.QueryRow(ctx, query.Query(), query.Args()...)
 	}
 
 	return db.pool.QueryRow(ctx, query.Query(), query.Args()...)
