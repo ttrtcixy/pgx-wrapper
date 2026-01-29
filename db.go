@@ -76,6 +76,7 @@ type txCtxKey struct {
 var txKey = txCtxKey{}
 
 // todo как выглядит лог если tx.Rollback, на каких слоях он появится
+// todo возможность Retry на некоторых уровнях изоляции
 
 // RunInTx before starting a transaction, it checks whether the user has canceled the request, and then initiates the transaction.
 func (db *Postgres) RunInTx(ctx context.Context, txOptions pgx.TxOptions, fn func(context.Context) error) (err error) {
