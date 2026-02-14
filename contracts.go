@@ -42,5 +42,5 @@ type Queryer interface {
 	QueryName() string
 	Query() string
 	Args() []any
-	//String() string
+	String() string
 }
