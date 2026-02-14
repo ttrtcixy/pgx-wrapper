@@ -169,7 +169,7 @@ func (db *Postgres) logQuery(ctx context.Context, query Query) {
 	)
 }
 
-func (db *Postgres) ErrorCode(err error) string {
+func ErrorCode(err error) string {
 	if e, ok := errors.AsType[*pgconn.PgError](err); ok {
 		return e.Code
 	}
