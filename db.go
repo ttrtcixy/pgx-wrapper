@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -166,4 +167,11 @@ func (db *Postgres) logQuery(ctx context.Context, query Query) {
 		slog.String("query", query.Query()),
 		slog.Any("args", query.Args()),
 	)
+}
+
+func (db *Postgres) ErrorCode(err error) string {
+	if e, ok := errors.AsType[*pgconn.PgError](err); ok {
+		return e.Code
+	}
+	return ""
 }
