@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -10,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 )
 
 type Config struct {
@@ -174,4 +176,9 @@ func ErrorCode(err error) string {
 		return e.Code
 	}
 	return ""
+}
+
+// SqlDB - closure does not affect the life of the main pool.
+func (db *Postgres) SqlDB() *sql.DB {
+	return stdlib.OpenDB(*db.pool.Config().ConnConfig)
 }
