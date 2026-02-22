@@ -28,7 +28,8 @@ type Postgres struct {
 func New(ctx context.Context, log *slog.Logger, cfg *Config) (*Postgres, error) {
 	const op = "storage.New()"
 	var pg = &Postgres{
-		log: log.WithGroup("postgres_storage"),
+		log: log,
+		//log: log.WithGroup("postgres_storage"),
 	}
 
 	if err := pg.createPool(ctx, cfg); err != nil {
