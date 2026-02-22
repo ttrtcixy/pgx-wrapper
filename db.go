@@ -166,8 +166,7 @@ func (db *Postgres) logQuery(ctx context.Context, query Query) {
 		ctx, slog.LevelDebug,
 		"Postgres request",
 		slog.String("query_name", query.QueryName()),
-		slog.String("query", query.Query()),
-		slog.Any("args", query.Args()),
+		slog.String("query", query.String()),
 	)
 }
 
