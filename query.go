@@ -27,7 +27,7 @@ func (q *Query) Args() []any {
 func (q *Query) String() string {
 	q.RawQuery = strings.TrimRight(q.RawQuery, "\r\n")
 
-	queryString := fmt.Sprintf("sql: %s: query: %s", q.QueryName(), q.Query())
+	queryString := q.Query()
 	if len(q.Args()) != 0 {
 		for k, v := range q.Args() {
 			queryString = strings.Replace(queryString, "$"+strconv.Itoa(k+1), fmt.Sprintf("%v", v), -1)
