@@ -103,14 +103,24 @@ func (db *Postgres) RunInTx(ctx context.Context, txOptions pgx.TxOptions, fn fun
 	defer func() {
 		if p := recover(); p != nil {
 			if rollbackErr := tx.Rollback(context.Background()); rollbackErr != nil { // no ctx
-				db.log.LogAttrs(ctx, slog.LevelError, "Transaction panic", slog.String("error", rollbackErr.Error())) // todo test
+				db.log.LogAttrs(
+					ctx,
+					slog.LevelError,
+					"Transaction panic",
+					slog.String("error", rollbackErr.Error()),
+				)
 			}
 			panic(p)
 		}
 
 		if err != nil {
 			if rollbackErr := tx.Rollback(context.Background()); rollbackErr != nil { // no ctx
-				db.log.LogAttrs(ctx, slog.LevelError, "Transaction error", slog.String("error", rollbackErr.Error())) // todo test
+				db.log.LogAttrs(
+					ctx,
+					slog.LevelError,
+					"Transaction error",
+					slog.String("error", rollbackErr.Error()),
+				)
 				err = fmt.Errorf("%s - transaction error - %w -> %w", op, rollbackErr, err)
 			}
 		}
@@ -176,6 +186,10 @@ func ErrorCode(err error) string {
 		return e.Code
 	}
 	return ""
+}
+
+func (db *Postgres) Ping(ctx context.Context) error {
+	return db.pool.Ping(ctx)
 }
 
 // SqlDB - closure does not affect the life of the main pool.
