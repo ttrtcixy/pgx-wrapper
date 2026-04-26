@@ -26,7 +26,7 @@ type Postgres struct {
 }
 
 func New(ctx context.Context, log *slog.Logger, cfg *Config) (*Postgres, error) {
-	const op = "storage.New()"
+	const op = "storage.New"
 	var pg = &Postgres{
 		log: log,
 		//log: log.WithGroup("postgres_storage"),
@@ -45,7 +45,8 @@ func New(ctx context.Context, log *slog.Logger, cfg *Config) (*Postgres, error) 
 
 // createPool init database connection, but not connect
 func (db *Postgres) createPool(ctx context.Context, cfg *Config) (err error) {
-	const op = "storage.createPool()"
+	const op = "storage.createPool"
+
 	poolCfg, err := pgxpool.ParseConfig(cfg.Dsn)
 	if err != nil {
 		return fmt.Errorf("%s - parse config error -> %w", op, err)
@@ -81,7 +82,7 @@ var txKey = txCtxKey{}
 
 // RunInTx before starting a transaction, it checks whether the user has canceled the request, and then initiates the transaction.
 func (db *Postgres) RunInTx(ctx context.Context, txOptions pgx.TxOptions, fn func(context.Context) error) (err error) {
-	const op = "storage.RunInTx()"
+	const op = "storage.RunInTx"
 	// if user close connection
 	if err = ctx.Err(); err != nil {
 		return fmt.Errorf("%s -> %w", op, err)
