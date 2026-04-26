@@ -81,10 +81,9 @@ func (db *Postgres) Close(_ context.Context) error {
 	return nil
 }
 
-type txCtxKey struct {
-}
+type txCtxKey string
 
-var txKey = txCtxKey{}
+var txKey txCtxKey = "tx"
 
 // RunInTx before starting a transaction, it checks whether the user has canceled the request, and then initiates the transaction.
 func (db *Postgres) RunInTx(ctx context.Context, txOptions pgx.TxOptions, fn func(context.Context) error) (err error) {
