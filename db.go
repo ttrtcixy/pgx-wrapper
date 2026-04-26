@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/exaring/otelpgx"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -18,6 +19,7 @@ type Config struct {
 	Dsn             string        `env:"DB_URL,required,notEmpty"`
 	ConnectTimeout  time.Duration `env:"DB_CONNECT_TIMEOUT,required,notEmpty"`
 	MaxConnIdleTime time.Duration `env:"DB_MAX_IDLE_TIMEOUT,required,notEmpty"`
+	OtelTracer      bool          `env:"DB_OTEL_TRACER"`
 }
 
 type Postgres struct {
@@ -54,6 +56,10 @@ func (db *Postgres) createPool(ctx context.Context, cfg *Config) (err error) {
 
 	poolCfg.ConnConfig.ConnectTimeout = cfg.ConnectTimeout
 	poolCfg.MaxConnIdleTime = cfg.MaxConnIdleTime
+
+	if cfg.OtelTracer {
+		poolCfg.ConnConfig.Tracer = otelpgx.NewTracer()
+	}
 
 	db.pool, err = pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
