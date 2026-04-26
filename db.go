@@ -31,7 +31,6 @@ func New(ctx context.Context, log *slog.Logger, cfg *Config) (*Postgres, error) 
 	const op = "storage.New"
 	var pg = &Postgres{
 		log: log,
-		//log: log.WithGroup("postgres_storage"),
 	}
 
 	if err := pg.createPool(ctx, cfg); err != nil {
@@ -76,6 +75,7 @@ func (db *Postgres) ping(ctx context.Context) error {
 	}
 	return nil
 }
+
 func (db *Postgres) Close(_ context.Context) error {
 	db.pool.Close()
 	return nil
@@ -142,6 +142,7 @@ func (db *Postgres) RunInTx(ctx context.Context, txOptions pgx.TxOptions, fn fun
 
 	if err = tx.Commit(ctx); err != nil {
 		db.log.LogAttrs(ctx, slog.LevelError, "Transaction commit error", slog.String("error", err.Error()))
+
 		return fmt.Errorf("%s - transaction commit error -> %w", op, err)
 	}
 	return nil
@@ -149,6 +150,7 @@ func (db *Postgres) RunInTx(ctx context.Context, txOptions pgx.TxOptions, fn fun
 
 func value(ctx context.Context) (pgx.Tx, bool) {
 	tx, ok := ctx.Value(txKey).(pgx.Tx)
+
 	return tx, ok
 }
 
@@ -164,14 +166,17 @@ func (db *Postgres) Exec(ctx context.Context, query Query) (pgconn.CommandTag, e
 
 func (db *Postgres) Query(ctx context.Context, query Query) (pgx.Rows, error) {
 	db.logQuery(ctx, query)
+
 	if tx, ok := value(ctx); ok {
 		return tx.Query(ctx, query.Query(), query.Args()...)
 	}
 
 	return db.pool.Query(ctx, query.Query(), query.Args()...)
 }
+
 func (db *Postgres) QueryRow(ctx context.Context, query Query) pgx.Row {
 	db.logQuery(ctx, query)
+
 	if tx, ok := value(ctx); ok {
 		return tx.QueryRow(ctx, query.Query(), query.Args()...)
 	}
@@ -192,6 +197,7 @@ func ErrorCode(err error) string {
 	if e, ok := errors.AsType[*pgconn.PgError](err); ok {
 		return e.Code
 	}
+
 	return ""
 }
 
