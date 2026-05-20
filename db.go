@@ -16,10 +16,10 @@ import (
 )
 
 type Config struct {
-	Dsn             string        `env:"DB_URL,required"`
-	ConnectTimeout  time.Duration `env:"DB_CONNECT_TIMEOUT,required"`
-	MaxConnIdleTime time.Duration `env:"DB_MAX_IDLE_TIMEOUT,required"`
-	OtelTracer      bool          `env:"DB_OTEL_TRACER"`
+	Dsn             string
+	ConnectTimeout  time.Duration
+	MaxConnIdleTime time.Duration
+	OtelTracer      bool
 }
 
 type Postgres struct {
