@@ -33,6 +33,10 @@ func New(ctx context.Context, log *slog.Logger, cfg *Config) (*Postgres, error) 
 		log: log,
 	}
 
+	if err := checkConfig(cfg); err != nil {
+		return nil, fmt.Errorf("%s -> %w", op, err)
+	}
+
 	if err := pg.createPool(ctx, cfg); err != nil {
 		return nil, fmt.Errorf("%s - error pool creation -> %w", op, err)
 	}
@@ -42,6 +46,24 @@ func New(ctx context.Context, log *slog.Logger, cfg *Config) (*Postgres, error) 
 	}
 
 	return pg, nil
+}
+
+func checkConfig(cfg *Config) error {
+	const op = "storage.checkConfig"
+
+	if cfg.Dsn == "" {
+		return fmt.Errorf("%s -> dsn is empty", op)
+	}
+
+	if cfg.ConnectTimeout < 0 {
+		return fmt.Errorf("%s -> connect timeout is less than or equal to 0", op)
+	}
+
+	if cfg.MaxConnIdleTime <= 0 {
+		return fmt.Errorf("%s -> max conn idle time is less than or equal to 0", op)
+	}
+
+	return nil
 }
 
 // createPool init database connection, but not connect
